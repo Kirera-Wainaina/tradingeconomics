@@ -1,9 +1,9 @@
-document.addEventListener("DOMContentLoaded", function () {
-    fetchCategories();
+document.addEventListener("DOMContentLoaded", async function () {
+    await fetchCategories();
 });
 
 function fetchCategories() {
-    fetch("/api/get-categories", {
+    return fetch("/api/get-categories", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -11,7 +11,7 @@ function fetchCategories() {
     })
         .then((response) => response.json())
         .then((data) => {
-            sessionStorage.setItem("categories", JSON.stringify(data));
+            return sessionStorage.setItem("categories", JSON.stringify(data));
         })
         .catch((error) => {
             console.error("Error fetching categories:", error);
