@@ -4,17 +4,37 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
+func miniRouter(dirPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+
+		// Serve index.html for the root path
+		if path == "/" {
+			path = "/index.html"
+		}
+		fmt.Printf("Requested path: %s\n", path)
+		// Get the file extension to set content type
+		var contentType string
+		switch {
+		case strings.HasSuffix(path, ".html"):
+			contentType = "text/html"
+		case strings.HasSuffix(path, ".js"):
+			contentType = "application/javascript"
+		case strings.HasSuffix(path, ".css"):
+			contentType = "text/css"
+		default:
 			http.NotFound(w, r)
 			return
 		}
 
-		absPath, err := filepath.Abs(filepath.Join(".", "project/index.html"))
+		// Remove leading slash and join with base directory
+		filePath := filepath.Join(dirPath, path[1:])
+		absPath, err := filepath.Abs(filePath)
 		fmt.Printf("Attempting to serve file at: %s\n", absPath)
+
 		if err != nil {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -22,9 +42,14 @@ func main() {
 			return
 		}
 
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Type", contentType)
 		http.ServeFile(w, r, absPath)
-	})
+	}
+}
+
+func main() {
+	// Use the miniRouter for the root path to serve files from project directory
+	http.HandleFunc("/", miniRouter("./project"))
 
 	port := "8080"
 	fmt.Printf("Server starting on http://localhost:%s\n", port)
