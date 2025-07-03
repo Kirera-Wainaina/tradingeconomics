@@ -1,5 +1,15 @@
 document.addEventListener("DOMContentLoaded", async function () {
-    await fetchCategories();
+    const categories = await fetchCategories();
+    const categorySelect = document.getElementById("category");
+
+    if (categories && categorySelect) {
+        categories.forEach((category) => {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.pretty_name || category.name;
+            categorySelect.appendChild(option);
+        });
+    }
 });
 
 function fetchCategories() {
@@ -10,10 +20,8 @@ function fetchCategories() {
         },
     })
         .then((response) => response.json())
-        .then((data) => {
-            return sessionStorage.setItem("categories", JSON.stringify(data));
-        })
         .catch((error) => {
             console.error("Error fetching categories:", error);
+            return [];
         });
 }
