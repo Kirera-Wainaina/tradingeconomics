@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const categories = await fetchCategories();
+    displayCategories(categories);
+});
+
+function displayCategories(categories) {
     const categorySelect = document.getElementById("category");
 
     if (categories && categorySelect) {
@@ -10,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             categorySelect.appendChild(option);
         });
     }
-});
+}
 
 function fetchCategories() {
     return fetch("/api/get-categories", {
