@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -43,6 +44,82 @@ func GetCategories(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+func GetTradeData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse JSON body
+	var requestData struct {
+		Country   string `json:"country"`
+		TradeType string `json:"tradeType"`
+		Category  string `json:"category"`
+	}
+
+	// Decode JSON body
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&requestData)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing JSON data: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Get values from JSON
+	country := requestData.Country
+	tradeType := requestData.TradeType
+	category := requestData.Category
+
+	// Validate required parameters
+	if country == "" || tradeType == "" || category == "" {
+		http.Error(w, "Missing required parameters: country, tradeType, and category are required", http.StatusBadRequest)
+		return
+	}
+
+	// Get API key from environment variables
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		http.Error(w, "API key not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Call the Trading Economics API
+	apiURL := fmt.Sprintf("https://api.tradingeconomics.com/comtrade/%s/%s/%s?c=%s&f=json",
+		tradeType, country, category, apiKey)
+
+	// Print the API URL for debugging
+	fmt.Printf("Calling API URL: %s\n", apiURL)
+
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching trade data: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error reading response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Parse the API response as JSON
+	var jsonResponse interface{}
+	err = json.Unmarshal(body, &jsonResponse)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing API response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Marshal back to JSON to ensure proper formatting
+	responseJSON, err := json.Marshal(jsonResponse)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error formatting response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Forward the parsed JSON response to the client
+	w.Write(responseJSON)
+}
+
 func miniRouter(dirPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -52,6 +129,9 @@ func miniRouter(dirPath string) http.HandlerFunc {
 			switch apiPath {
 			case "get-categories":
 				GetCategories(w, r)
+				return
+			case "get-trade-data":
+				GetTradeData(w, r)
 				return
 			default:
 				http.NotFound(w, r)

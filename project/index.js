@@ -13,7 +13,7 @@ function displayCategories(categories) {
     if (categories && categorySelect) {
         categories.forEach((category) => {
             const option = document.createElement("option");
-            option.value = category.id;
+            option.value = category.name;
             option.textContent = category.pretty_name || category.name;
             categorySelect.appendChild(option);
         });
