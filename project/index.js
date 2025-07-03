@@ -11,7 +11,7 @@ function fetchCategories() {
     })
         .then((response) => response.json())
         .then((data) => {
-            console.log("Categories received:", data);
+            sessionStorage.setItem("categories", JSON.stringify(data));
         })
         .catch((error) => {
             console.error("Error fetching categories:", error);
