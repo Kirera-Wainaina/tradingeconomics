@@ -37,6 +37,9 @@ function fetchCategories() {
 function handleFormSubmission(event) {
     event.preventDefault();
 
+    // Show loading indicator or message
+    document.getElementById("chart-container").style.opacity = "0.5";
+
     const country = document.getElementById("country").value;
     const tradeType = document.getElementById("trade-type").value;
     const category = document.getElementById("category").value;
@@ -56,6 +59,8 @@ function handleFormSubmission(event) {
     })
         .then((response) => response.json())
         .then((data) => {
+            // Restore opacity before displaying chart
+            document.getElementById("chart-container").style.opacity = "1";
             displayTradeChart(data);
         })
         .catch((error) => {
@@ -79,6 +84,7 @@ function displayTradeChart(tradeData) {
     // Create the donut chart
     window.tradeChart = new Chart(ctx, {
         type: "doughnut",
+        cutout: "65%",
         data: {
             labels: chartData.labels,
             datasets: [
@@ -91,13 +97,30 @@ function displayTradeChart(tradeData) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: "top",
+                    position: "right",
+                    align: "center",
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                        },
+                    },
                 },
                 title: {
                     display: true,
                     text: "Trade Partners by Value",
+                    font: {
+                        size: 16,
+                        weight: "bold",
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20,
+                    },
                 },
                 tooltip: {
                     callbacks: {
