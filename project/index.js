@@ -61,14 +61,14 @@ function handleFormSubmission(event) {
         .then((data) => {
             // Restore opacity before displaying chart
             document.getElementById("chart-container").style.opacity = "1";
-            displayTradeChart(data);
+            displayTradeChart(data, formData);
         })
         .catch((error) => {
             console.error("Error fetching trade data:", error);
         });
 }
 
-function displayTradeChart(tradeData) {
+function displayTradeChart(tradeData, formData) {
     // Get the canvas element
     const ctx = document.getElementById("trade-chart").getContext("2d");
 
@@ -111,7 +111,7 @@ function displayTradeChart(tradeData) {
                 },
                 title: {
                     display: true,
-                    text: "Trade Partners by Value",
+                    text: generateChartTitle(formData),
                     font: {
                         size: 16,
                         weight: "bold",
@@ -274,4 +274,30 @@ function generateColors(count) {
         colors.push(`hsl(${hue}, 70%, 60%)`);
     }
     return colors;
+}
+
+function generateChartTitle(formData) {
+    if (!formData) return "Trade Partners by Value";
+
+    // Capitalize first letter of each word
+    const country = formData.country
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+    const tradeType =
+        formData.tradeType.charAt(0).toUpperCase() +
+        formData.tradeType.slice(1);
+
+    // If category is present, include it in the title
+    let title = `${country}'s ${tradeType} Trade Partners`;
+    if (formData.category && formData.category !== "all") {
+        const category = formData.category
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+        title += ` for ${category}`;
+    }
+
+    return title;
 }
