@@ -12,6 +12,7 @@
         <title>Comtrade</title>
         <link rel="stylesheet" href="styles.css" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
         <script src="index.js"></script>
     </head>
     <body>
@@ -241,7 +242,13 @@
             <button type="submit">Submit</button>
         </form>
         <div id="chart-container" style="max-width: 800px; margin: 20px auto">
-            <canvas id="trade-chart"></canvas>
+            <div id="chart-area">
+                <canvas id="trade-chart"></canvas>
+            </div>
+            <div id="legend-area">
+                <h3>Trading Partners</h3>
+                <div id="custom-legend"></div>
+            </div>
         </div>
     </body>
 </html>

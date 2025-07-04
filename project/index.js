@@ -81,6 +81,13 @@ function displayTradeChart(tradeData) {
     // We're interested in 'country2' and 'value'
     const chartData = processTradeData(tradeData);
 
+    // Clear custom legend
+    const customLegend = document.getElementById("custom-legend");
+    customLegend.innerHTML = "";
+
+    // Generate colors for chart
+    const backgroundColors = generateColors(chartData.labels.length);
+
     // Create the donut chart
     window.tradeChart = new Chart(ctx, {
         type: "doughnut",
@@ -90,7 +97,7 @@ function displayTradeChart(tradeData) {
             datasets: [
                 {
                     data: chartData.values,
-                    backgroundColor: generateColors(chartData.labels.length),
+                    backgroundColor: backgroundColors,
                     borderWidth: 1,
                 },
             ],
@@ -100,15 +107,7 @@ function displayTradeChart(tradeData) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: "right",
-                    align: "center",
-                    labels: {
-                        boxWidth: 15,
-                        padding: 15,
-                        font: {
-                            size: 12,
-                        },
-                    },
+                    display: false, // Hide the default legend
                 },
                 title: {
                     display: true,
@@ -150,6 +149,69 @@ function displayTradeChart(tradeData) {
             },
         },
     });
+
+    // Create custom legend
+    createCustomLegend(chartData, backgroundColors);
+}
+
+// Function to create a custom legend in the black area
+function createCustomLegend(chartData, backgroundColors) {
+    const customLegend = document.getElementById("custom-legend");
+    const totalValue = chartData.values.reduce((a, b) => a + b, 0);
+
+    // Create legend items
+    for (let i = 0; i < chartData.labels.length; i++) {
+        const legendItem = document.createElement("div");
+        legendItem.className = "legend-item";
+
+        const colorBox = document.createElement("div");
+        colorBox.className = "legend-color";
+        colorBox.style.backgroundColor = backgroundColors[i];
+
+        const label = document.createElement("div");
+        label.className = "legend-label";
+        label.textContent = chartData.labels[i];
+
+        const value = document.createElement("div");
+        value.className = "legend-value";
+
+        // Calculate percentage
+        const percentage = Math.round((chartData.values[i] / totalValue) * 100);
+
+        // Format value
+        const formattedValue = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(chartData.values[i]);
+
+        value.textContent = `${formattedValue} (${percentage}%)`;
+
+        legendItem.appendChild(colorBox);
+        legendItem.appendChild(label);
+        legendItem.appendChild(value);
+
+        // Add click event to highlight/toggle chart segment
+        legendItem.addEventListener("click", function () {
+            const index = i;
+            const meta = window.tradeChart.getDatasetMeta(0);
+            const isHidden = meta.data[index].hidden || false;
+
+            meta.data[index].hidden = !isHidden;
+
+            // Toggle opacity of the legend item
+            if (meta.data[index].hidden) {
+                legendItem.style.opacity = 0.5;
+            } else {
+                legendItem.style.opacity = 1;
+            }
+
+            window.tradeChart.update();
+        });
+
+        customLegend.appendChild(legendItem);
+    }
 }
 
 function processTradeData(tradeData) {
